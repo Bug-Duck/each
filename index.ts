@@ -1,6 +1,4 @@
-import { reactive } from '@vue/reactivity'
-import { parse } from './parse'
-import { resolveNode } from './widget'
+import { render } from './each'
 
 const source = `
 <eich width="100%" height="100%">
@@ -13,12 +11,8 @@ const source = `
 </eich>
 `
 
-const ast = parse(source)
-const context = reactive({})
-const node = ast.map(root => resolveNode(root, context)())
-
 const app = document.querySelector<HTMLDivElement>('#app')!
-node.forEach(child => app.append(child))
+const [nodes, context] = render(source, app)
 
 // eslint-disable-next-line no-console
-console.log(ast, node, context)
+console.log(nodes, context)
