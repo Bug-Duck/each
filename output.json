@@ -1,0 +1,49 @@
+[
+  {
+    "tag": "eich",
+    "attrs": {
+      "width": "100%",
+      "height": "100%"
+    },
+    "children": [
+      {
+        "tag": "var",
+        "attrs": {
+          "key": "c",
+          "$value": "'TEST STRING FUCK FUCKVFUCK'"
+        },
+        "children": []
+      },
+      {
+        "tag": "row",
+        "attrs": {},
+        "children": [
+          {
+            "tag": "for",
+            "attrs": {
+              "$in": "Array(c.length).keys()",
+              "key": "x"
+            },
+            "children": [
+              {
+                "tag": "if",
+                "attrs": {
+                  "$condition": "x % 2 === 0"
+                },
+                "children": [
+                  {
+                    "tag": "value",
+                    "attrs": {
+                      "$data": "'Index Filtered: ' + x"
+                    },
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
