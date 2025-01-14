@@ -17,7 +17,8 @@ const ast = parse(source)
 const context = reactive({})
 const node = ast.map(root => resolveNode(root, context)())
 
-node.forEach(child => document.body.append(child))
+const app = document.querySelector<HTMLDivElement>('#app')!
+node.forEach(child => app.append(child))
 
 // eslint-disable-next-line no-console
 console.log(ast, node, context)
