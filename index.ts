@@ -21,6 +21,18 @@ const source = `
     </else>
   </row>
 </eich>
+
+<eich width="100%" height="100%">
+  <var key="c" $value="'TEST STRING FUCK FUCKVFUCK'"/>
+  <row>
+    <for $in="Array(c.length).keys()" key="x">
+      <if $condition="x % 2 === 0">
+        <value $data="'Index Filtered: ' + x"/>
+      </if>
+    </for>
+  </row>
+</eich>
+
 `
 
 const app = document.querySelector<HTMLDivElement>('#app')!

@@ -48,7 +48,7 @@ const component = defineComponent(
           scope.run(() => root.append(...node.else!.children.flatMap(renderNode)))
           patch(container, root)
         }
-      }, null)
+      })
     })
 
     return container

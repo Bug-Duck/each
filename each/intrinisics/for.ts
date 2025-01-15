@@ -1,9 +1,10 @@
-import { effect, type EffectScope, effectScope } from '@vue/reactivity'
+import { effect, type EffectScope, effectScope, readonly } from '@vue/reactivity'
 import {
   createAdhoc,
   defineComponent,
   getCurrentContext,
   intrinsics,
+  mergeContext,
   patch,
   runInContext,
 } from '../renderer'
@@ -27,7 +28,10 @@ const component = defineComponent(
       for (const item of iterable(context)) {
         scope.run(
           () => root.append(
-            ...runInContext({ [key]: item }, children, context),
+            ...runInContext(
+              mergeContext(readonly({ [key]: item }), context),
+              children,
+            ),
           ),
         )
       }

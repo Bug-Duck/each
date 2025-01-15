@@ -1,6 +1,6 @@
-import { type Reactive, reactive, toRefs } from '@vue/reactivity'
-import { Idiomorph } from './idiomorph'
-import { type EachBasicNode, type EachSourceNode, isEachIfNode, isEachTextNode, parse } from './parser'
+import { isReactive, type Reactive, reactive, readonly, toRefs } from '@vue/reactivity'
+import patch from 'morphdom'
+import { type EachBasicNode, type EachSourceNode, isEachTextNode, parse } from './parser'
 
 export type Attributes = Record<string, any>
 export type Context = Reactive<Record<string, any>>
@@ -10,9 +10,7 @@ export type Component<T extends Attributes = Attributes> =
 export const intrinsics = new Map<string, Component<any>>()
 let activeContext: Context | null = null
 
-export function patch(target: Node, source: Node): void {
-  Idiomorph.morph(target, source)
-}
+export { patch }
 
 export function getCurrentContext(): Context {
   if (activeContext == null) {
@@ -27,20 +25,15 @@ export function setCurrentContext(context: Context): void {
 }
 
 export function mergeContext(target: Context, from: Context): Context {
-  return Object.assign(toRefs(target), toRefs(from))
+  return reactive(Object.assign(toRefs(target), toRefs(from)))
 }
 
 export function runInContext<T extends Context, R>(
-  initial: Reactive<T>,
+  context: T,
   fn: () => R,
-  parent: Context | null = getCurrentContext(),
 ): R {
-  const newContext = reactive(
-    parent ? mergeContext(initial, parent) : initial,
-  )
-
   const oldContext = activeContext
-  activeContext = newContext
+  activeContext = context
   try {
     return fn()
   }
@@ -81,7 +74,7 @@ export function renderNode(node: EachSourceNode): Node | Node[] {
 
 export function renderRoots(roots: EachSourceNode[], target: Node, initialContext: Reactive<Context> = {}): [Node[], Reactive<Context>] {
   const context = reactive(initialContext)
-  const children = runInContext(context, () => roots.flatMap(renderNode), null)
+  const children = runInContext(context, () => roots.flatMap(renderNode))
   target && children.forEach(child => target.appendChild(child))
   return [children, context]
 }
