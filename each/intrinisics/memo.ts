@@ -1,3 +1,5 @@
+import { computed } from '@vue/reactivity'
+
 import {
   createAdhoc,
   defineComponent,
@@ -5,18 +7,19 @@ import {
   intrinsics,
 } from '../renderer'
 
-export interface VarAttributes {
+export interface MemoAttributes {
   $value: string
   key: string
 }
 
 const component = defineComponent(
-  ({ $value, key }: VarAttributes) => {
+  ({ $value, key }: MemoAttributes) => {
+    const adhoc = createAdhoc($value)
     const context = getCurrentContext()
-    context[key] = createAdhoc($value)(context)
+    context[key] = computed(() => adhoc(context))
   },
 )
 
-intrinsics.set('var', component)
+intrinsics.set('memo', component)
 
 export default component

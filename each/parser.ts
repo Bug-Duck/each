@@ -1,5 +1,3 @@
-import { effect, reactive, type Reactive } from '@vue/reactivity'
-
 import {
   type DocumentNode,
   NodeTypes,

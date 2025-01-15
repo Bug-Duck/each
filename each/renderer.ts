@@ -1,6 +1,6 @@
-import { effect, effectScope, type EffectScope, type Reactive, reactive, toRefs } from '@vue/reactivity'
+import { type Reactive, reactive, toRefs } from '@vue/reactivity'
 import { Idiomorph } from './idiomorph'
-import { type EachBasicNode, type EachIfNode, type EachSourceNode, isEachIfNode, isEachTextNode, parse } from './parser'
+import { type EachBasicNode, type EachSourceNode, isEachIfNode, isEachTextNode, parse } from './parser'
 
 export type Attributes = Record<string, any>
 export type Context = Reactive<Record<string, any>>
@@ -20,6 +20,10 @@ export function getCurrentContext(): Context {
   }
 
   return activeContext
+}
+
+export function setCurrentContext(context: Context): void {
+  activeContext = context
 }
 
 export function mergeContext(target: Context, from: Context): Context {
@@ -47,7 +51,7 @@ export function runInContext<T extends Context, R>(
 
 export function createAdhoc<T = unknown>(src: string): (context: Context) => T {
   // eslint-disable-next-line no-new-func
-  return new Function(`return (function(context){with(context){return (${src});}});`)() as any
+  return new Function(`return (function($__each_ctx){with($__each_ctx){return (${src});}});`)() as any
 }
 
 const noopComp = defineComponent(
@@ -68,64 +72,11 @@ export function renderNode(node: EachSourceNode): Node | Node[] {
     return document.createTextNode(node.value)
   }
 
-  if (isEachIfNode(node)) {
-    return renderIfNode(node)
-  }
-
   if (intrinsics.has(node.tag)) {
     return renderComp(intrinsics.get(node.tag)!, node)
   }
 
   return renderComp(noopComp, node)
-}
-
-export function renderIfNode(node: EachIfNode): Node {
-  const container = document.createElement('span')
-  const context = getCurrentContext()
-
-  if (!node.attrs.$condition) {
-    throw new Error('missing $condition attribute')
-  }
-  const cond = createAdhoc(node.attrs.$condition)
-  let scope: EffectScope
-
-  const elifCond = node.elif && node.elif.map(({ attrs }) => {
-    if (!attrs.$condition) {
-      throw new Error('missing $condition attribute')
-    }
-
-    return createAdhoc(attrs.$condition)
-  })
-
-  effect(() => {
-    scope?.stop()
-    scope = effectScope()
-    runInContext(context, () => {
-      const root = document.createElement('span')
-      if (cond(context)) {
-        scope.run(() => root.append(...node.children.flatMap(renderNode)))
-        patch(container, root)
-        return
-      }
-
-      if (node.elif && node.elif.length != 0) {
-        for (let i = 0; i < node.elif.length; i += 1) {
-          if (elifCond![i](context)) {
-            scope.run(() => root.append(...node.elif![i].children.flatMap(renderNode)))
-            patch(container, root)
-            return
-          }
-        }
-      }
-
-      if (node.else) {
-        scope.run(() => root.append(...node.else!.children.flatMap(renderNode)))
-        patch(container, root)
-      }
-    }, null)
-  })
-
-  return container
 }
 
 export function renderRoots(roots: EachSourceNode[], target: Node, initialContext: Reactive<Context> = {}): [Node[], Reactive<Context>] {
