@@ -1,4 +1,4 @@
-import { isReactive, type Reactive, reactive, readonly, toRefs } from '@vue/reactivity'
+import { type Reactive, reactive, toRefs } from '@vue/reactivity'
 import patch from 'morphdom'
 import { type EachBasicNode, type EachSourceNode, isEachTextNode, parse } from './parser'
 
@@ -8,6 +8,7 @@ export type Component<T extends Attributes = Attributes> =
   (props: T, children: () => Node[], node: EachSourceNode) => Node | Node[] | void
 
 export const intrinsics = new Map<string, Component<any>>()
+
 let activeContext: Context | null = null
 
 export { patch }
@@ -49,7 +50,7 @@ export function createAdhoc<T = unknown>(src: string): (context: Context) => T {
 
 const noopComp = defineComponent(
   (_, children, node) => {
-    if (import.meta.env.DEV) {
+    if (import.meta.env.DEV && node.tag != 'noop') {
       console.warn(`ignoring <${node.tag}>, instead of using <noop> (internal)`)
     }
     return children()
