@@ -1,12 +1,21 @@
-import { render } from './each'
+import { render } from './each/renderer'
+import './each/intrinisics/var'
+import './each/intrinisics/value'
+import './each/intrinisics/for'
 
 const source = `
 <eich width="100%" height="100%">
   <var key="c" $value="'TEST STRING'"/>
   <row>  
     <if $condition="c.startsWith('TEST')">
-      <value $data="'Output: ' + c + ' '"/>
+      <value $data="'Output starts with TEST: ' + c + ' '"/>
     </if>
+    <elif $condition="c.startsWith('OK')">
+      <value $data="'Output starts with OK: ' + c + ' '"/>
+    </elif>
+    <else>
+      <value $data="'Output: ' + c + ' '"/>
+    </else>
   </row>
 </eich>
 `

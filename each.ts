@@ -11,7 +11,7 @@ import {
 export interface EachSourceNode {
   tag: string
   attrs: Record<string, any>
-  children: (EachSourceNode | string)[]
+  children: EachSourceNode[]
 }
 
 export type EachContext = Record<string, any>
