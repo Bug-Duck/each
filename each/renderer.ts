@@ -43,9 +43,18 @@ export function runInContext<T extends Context, R>(
   }
 }
 
-export function createAdhoc<T = unknown>(src: string): (context: Context) => T {
+export function createAdhoc<T = unknown>(src: string, context: Context): () => T
+export function createAdhoc<T = unknown>(src: string): (context: Context) => T
+export function createAdhoc<T = unknown>(src: string, context?: Context): (context?: Context) => T {
   // eslint-disable-next-line no-new-func
-  return new Function(`return (function($__each_ctx){with($__each_ctx){return (${src});}});`)() as any
+  const adhoc = new Function(`return (function($__each_ctx){with($__each_ctx){return (${src});}});`)() as any
+  return (ctx) => {
+    if (ctx == null && context == null) {
+      throw new TypeError('missing context')
+    }
+
+    return adhoc(ctx ?? context!)
+  }
 }
 
 const noopComp = defineComponent(
