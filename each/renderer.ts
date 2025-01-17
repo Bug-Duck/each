@@ -13,6 +13,10 @@ let activeContext: Context | null = null
 
 export { patch }
 
+export function hasContext(): boolean {
+  return activeContext != null
+}
+
 export function getCurrentContext(): Context {
   if (activeContext == null) {
     throw new Error('no active context')
@@ -82,14 +86,14 @@ export function renderNode(node: EachSourceNode): Node | Node[] {
   return renderComp(noopComp, node)
 }
 
-export function renderRoots(roots: EachSourceNode[], target: Node, initialContext: Reactive<Context> = {}): [Node[], Reactive<Context>] {
+export function renderRoots(roots: EachSourceNode[], target?: Node, initialContext: Reactive<Context> = {}): [Node[], Reactive<Context>] {
   const context = reactive(initialContext)
   const children = runInContext(context, () => roots.flatMap(renderNode))
   target && children.forEach(child => target.appendChild(child))
   return [children, context]
 }
 
-export function render(source: string, target: Node, initialContext: Reactive<Context> = {}): [Node[], Reactive<Context>] {
+export function render(source: string, target?: Node, initialContext: Reactive<Context> = {}): [Node[], Reactive<Context>] {
   const ast = parse(source)
   return renderRoots(ast, target, initialContext)
 }

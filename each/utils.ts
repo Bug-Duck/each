@@ -1,40 +1,8 @@
-import { effect, type MaybeRefOrGetter, stop, toValue } from '@vue/reactivity'
+import type { Context } from './renderer'
+import { effect, type MaybeRefOrGetter, reactive, stop, toValue } from '@vue/reactivity'
 import { toDisplayString } from '@vue/shared'
-
-export function interpolate(
-  literal: TemplateStringsArray,
-  ...values: MaybeRefOrGetter<unknown>[]
-): Node {
-  const tmpl = document.createElement('div')
-  tmpl.innerHTML = literal.reduce((acc, v, i) => `${acc}${v}<!$interpolate$${i}>`, '')
-  return _interpolate(tmpl.firstChild!, values)
-}
-
-export function template<const T extends string | number>(
-  literal: TemplateStringsArray,
-  ...values: T[]
-): (data: Record<T, MaybeRefOrGetter<unknown>>) => Node {
-  const tmpl = document.createElement('div')
-  tmpl.innerHTML = literal.reduce((acc, v, i) => `${acc}${v}<!$interpolate$${values[i]}>`, '')
-  return data => _interpolate(tmpl.firstChild!.cloneNode(), data)
-}
-
-function _interpolate(node: Node, values: Record<PropertyKey, MaybeRefOrGetter<unknown>> | MaybeRefOrGetter<unknown>[]): Node {
-  node.childNodes.forEach((child) => {
-    if (child.nodeType == 8 && child.nodeValue!.startsWith('$interpolate$')) {
-      const index = Array.isArray(values) ? Number.parseInt(child.nodeValue!.slice(13)) : child.nodeValue!.slice(13)
-      const text = document.createTextNode('')
-      effect(() => {
-        text.textContent = toDisplayString(toValue((values as any)[index]))
-      })
-      child.replaceWith(text)
-      return
-    }
-
-    child.nodeType != 3 && _interpolate(child, values)
-  })
-  return node
-}
+import { parse } from './parser'
+import { getCurrentContext, hasContext, mergeContext, renderRoots } from './renderer'
 
 export function style(source: TemplateStringsArray, ...values: MaybeRefOrGetter<unknown>[]): () => void {
   const style = document.createElement('style')
@@ -48,4 +16,24 @@ export function style(source: TemplateStringsArray, ...values: MaybeRefOrGetter<
     stop(e)
     style.remove()
   }
+}
+
+export function each(literal: TemplateStringsArray, ...values: MaybeRefOrGetter<unknown>[]): Node[] {
+  const uid = Math.round(performance.now() * 100)
+  const src = literal.reduce((acc, v, i) => {
+    return `${acc}${v}${i == literal.length - 1 ? '' : `($$_EachEnv_${uid}_${i}_)`}`
+  }, '').trim()
+  const ast = parse(src)
+  if (ast.length != 1) {
+    throw new TypeError(`Invalid template \n---\n${src}\n---\n`)
+  }
+
+  const o = reactive(values.reduce<Context>((acc, v, i) => {
+    acc[`$$_EachEnv_${uid}_${i}_`] = v
+    return acc
+  }, {}))
+
+  console.log(src)
+
+  return renderRoots(ast, undefined, hasContext() ? mergeContext(o, getCurrentContext()) : o)[0]
 }
