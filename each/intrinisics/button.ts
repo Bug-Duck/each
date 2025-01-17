@@ -1,4 +1,3 @@
-import { effect } from '@vue/reactivity'
 import {
   defineComponent,
   intrinsics,
@@ -12,10 +11,11 @@ export interface ButtonAttributes {
 const component = defineComponent(
   (attrs: ButtonAttributes, children) => {
     const delegate = createDelegate(attrs)
+
     const button = document.createElement('button')
     button.append(...children())
-    delegate(button)
 
+    delegate(button)
     return button
   },
 )
