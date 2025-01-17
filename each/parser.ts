@@ -70,7 +70,7 @@ function toNode(root: TagNode): EachSourceNode {
       if (text.length != 0) {
         node.children.push({
           tag: '#text',
-          value: text,
+          value: child.value,
         } satisfies EachTextNode)
       }
       index += 1
@@ -153,7 +153,7 @@ function toRoots(doc: DocumentNode): EachSourceNode[] {
       }
       children.push({
         tag: '#text',
-        value: text,
+        value: child.value,
       } satisfies EachTextNode)
     }
 

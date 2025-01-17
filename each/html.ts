@@ -2,7 +2,7 @@ import { effect, isRef, type MaybeRefOrGetter, toValue } from '@vue/reactivity'
 import { toDisplayString } from '@vue/shared'
 import clsx, { type ClassValue } from 'clsx'
 
-export function _transformTmpl(literal: readonly string[], keys?: (string | number)[]): any {
+function _transformTmpl(literal: readonly string[], keys?: (string | number)[]): any {
   if (keys && keys.length < literal.length - 1) {
     throw new TypeError('Invalid keys length')
   }
@@ -16,7 +16,7 @@ export function _transformTmpl(literal: readonly string[], keys?: (string | numb
   }, '').trim()
 }
 
-export function _parseTmpl(html: string): Node {
+function _parseTmpl(html: string): Node {
   const el = document.createElement('div')
   el.innerHTML = html
   if (el.children.length != 1) {
@@ -26,11 +26,11 @@ export function _parseTmpl(html: string): Node {
   return el
 }
 
-export function isDOMNode(x: any): x is Node {
+function isDOMNode(x: any): x is Node {
   return Number.isInteger(x.nodeType)
 }
 
-export function _createTextNode(val: MaybeRefOrGetter<unknown>): Text {
+function _createTextNode(val: MaybeRefOrGetter<unknown>): Text {
   const text = document.createTextNode('')
   effect(() => {
     text.textContent = toDisplayString(toValue(val))
@@ -38,7 +38,7 @@ export function _createTextNode(val: MaybeRefOrGetter<unknown>): Text {
   return text
 }
 
-export function _renderTmpl(root: Node, values: Record<string | number, InterpolateParam> | InterpolateParam[], rawAttrs = false): Node {
+function _renderTmpl(root: Node, values: Record<string | number, InterpolateParam> | InterpolateParam[], rawAttrs = false): Node {
   if (root.nodeType == 3) {
     return root
   }
@@ -88,7 +88,7 @@ export function _renderTmpl(root: Node, values: Record<string | number, Interpol
   return el.firstChild!
 }
 
-export function _setRxAttr(el: Element, name: string, value: unknown): void {
+function _setRxAttr(el: Element, name: string, value: unknown): void {
   if (name.startsWith('@') && typeof value == 'function') {
     const eventName = name.slice(1)
     el.addEventListener(eventName, value as any)
@@ -129,13 +129,27 @@ export function _setRxAttr(el: Element, name: string, value: unknown): void {
   }
 }
 
-export type InterpolateParam = MaybeRefOrGetter<ClassValue> | Node | (MaybeRefOrGetter<ClassValue> | Node)[] | EventListenerOrEventListenerObject
-export type Template<T extends (string | number)> = (values: Record<T, InterpolateParam>, rawAttrs?: boolean) => Node
-export function template<const T extends (string | number)>(literal: TemplateStringsArray, ...keys: T[]): Template<T> {
+export type InterpolateParam =
+  | MaybeRefOrGetter<ClassValue>
+  | Node
+  | (MaybeRefOrGetter<ClassValue> | Node)[]
+  | EventListenerOrEventListenerObject
+
+export type Template<T extends (string | number)> =
+  (values: Record<T, InterpolateParam>, rawAttrs?: boolean) => Node
+
+export function template<const T extends (string | number)>(
+  literal: TemplateStringsArray,
+  ...keys: T[]
+): Template<T> {
   const proto = _parseTmpl(_transformTmpl(literal, keys))
-  return (values: Record<T, InterpolateParam>, rawAttrs?: boolean) => _renderTmpl(proto.cloneNode(true), values, rawAttrs)
+  return (values: Record<T, InterpolateParam>, rawAttrs?: boolean) =>
+    _renderTmpl(proto.cloneNode(true), values, rawAttrs)
 }
 
-export function html(literal: TemplateStringsArray, ...values: InterpolateParam[]): Node {
+export function html(
+  literal: TemplateStringsArray,
+  ...values: InterpolateParam[]
+): Node {
   return _renderTmpl(_parseTmpl(_transformTmpl(literal)), values)
 }

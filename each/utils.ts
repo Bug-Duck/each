@@ -2,7 +2,7 @@ import type { Context } from './renderer'
 import { effect, type MaybeRefOrGetter, reactive, stop, toValue } from '@vue/reactivity'
 import { toDisplayString } from '@vue/shared'
 import { parse } from './parser'
-import { getCurrentContext, hasContext, mergeContext, renderRoots } from './renderer'
+import { createAdhoc, getCurrentContext, hasContext, mergeContext, renderRoots } from './renderer'
 
 export function style(source: TemplateStringsArray, ...values: MaybeRefOrGetter<unknown>[]): () => void {
   const style = document.createElement('style')
@@ -24,16 +24,32 @@ export function each(literal: TemplateStringsArray, ...values: MaybeRefOrGetter<
     return `${acc}${v}${i == literal.length - 1 ? '' : `($$_EachEnv_${uid}_${i}_)`}`
   }, '').trim()
   const ast = parse(src)
-  if (ast.length != 1) {
-    throw new TypeError(`Invalid template \n---\n${src}\n---\n`)
-  }
 
   const o = reactive(values.reduce<Context>((acc, v, i) => {
     acc[`$$_EachEnv_${uid}_${i}_`] = v
     return acc
   }, {}))
 
-  console.log(src)
-
   return renderRoots(ast, undefined, hasContext() ? mergeContext(o, getCurrentContext()) : o)[0]
+}
+
+export function createDelegate(map: Record<string, any>, eventNames?: string[], adhoc: boolean = true): (node: Node) => void {
+  if (eventNames == null) {
+    eventNames = Object.keys(map).filter(v => v.startsWith('@') && v.length > 1)
+  }
+
+  const delegates: [string, EventListener][] = []
+
+  for (const key of eventNames) {
+    const event = key.slice(1).toLowerCase()
+    const handler = map[key]
+    if (typeof handler == 'string' && adhoc) {
+      delegates.push([event, createAdhoc(`(function($event){${handler}})`, getCurrentContext())() as any])
+    }
+    else if (typeof handler == 'function') {
+      delegates.push([event, handler])
+    }
+  }
+
+  return node => delegates.forEach(([event, handler]) => node.addEventListener(event, handler))
 }
