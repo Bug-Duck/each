@@ -1,5 +1,0 @@
-export * from './html'
-export * from './parser'
-export * from './renderer'
-export * from './utils'
-export { effect, effectScope, isReactive, isRef, onEffectCleanup, onScopeDispose, onWatcherCleanup, reactive, ref, shallowReactive, shallowRef, watch } from '@vue/reactivity'

@@ -1,5 +1,5 @@
 {
-  "name": "each",
+  "name": "eich",
   "type": "module",
   "module": "index.ts",
   "peerDependencies": {

@@ -1,8 +1,8 @@
 import type { Context } from './renderer'
-import { effect, isReactive, isRef, type MaybeRefOrGetter, reactive, readonly, shallowReactive, shallowRef, stop, toRefs, toValue, unref } from '@vue/reactivity'
+import { effect, type MaybeRefOrGetter, shallowReactive, stop, toRefs, toValue, unref } from '@vue/reactivity'
 import { toDisplayString } from '@vue/shared'
 import { parse } from './parser'
-import { createAdhoc, getCurrentContext, hasContext, mergeContext, renderRoots } from './renderer'
+import { createAdhoc, getCurrentContext, hasContext, renderRoots } from './renderer'
 
 export function style(source: TemplateStringsArray, ...values: MaybeRefOrGetter<unknown>[]): () => void {
   const style = document.createElement('style')
@@ -18,7 +18,7 @@ export function style(source: TemplateStringsArray, ...values: MaybeRefOrGetter<
   }
 }
 
-export function each(literal: TemplateStringsArray, ...values: MaybeRefOrGetter<unknown>[]): Node[] {
+export function eich(literal: TemplateStringsArray, ...values: MaybeRefOrGetter<unknown>[]): Node[] {
   const uid = Math.round(performance.now() * 100)
   const src = literal.reduce((acc, v, i) => {
     return `${acc}${v}${i == literal.length - 1 ? '' : `($$_EachEnv_${uid}_${i}_)`}`
